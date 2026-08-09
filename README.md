@@ -81,6 +81,52 @@ npm start
 The Express server automatically serves the built frontend from
 `frontend/dist`, so the whole app runs on `http://localhost:3001`.
 
+## Deploying
+
+> **Important:** Vercel alone is **not** enough. Vercel hosts the static
+> frontend perfectly, but its serverless functions **cannot** run Socket.IO or
+> hold long-lived WebSocket connections, and they do not keep in-memory room
+> state. So a Vercel-only deploy would load the page but stay stuck on
+> "Connecting to server..." and **multiplayer would not work**.
+>
+> The multiplayer backend needs a **persistent** host that supports WebSockets:
+> **Render** (Web Service), **Railway**, **Fly.io**, **Heroku**, or a VPS.
+> Deploy the backend there, then point the Vercel frontend at it.
+
+### 1. Backend (persistent WebSocket host) — e.g. Render
+
+1. Push this repo to GitHub.
+2. On [Render](https://render.com), choose **New > Web Service**, connect the
+   repo, and select the included blueprint: `render.yaml` (or set Root Directory
+   to `server`, Build Command to `npm install`, Start Command to `npm start`,
+   and Health Check Path to `/api/health`).
+3. Render gives the backend a public URL, e.g.
+   `https://tic-tac-toe-server.onrender.com`. Note it down.
+
+Other hosts work the same way — the backend is a plain Node.js service that
+listens on `process.env.PORT`.
+
+### 2. Frontend on Vercel
+
+1. On [Vercel](https://vercel.com), **Add New > Project**, import the same repo.
+2. Set **Root Directory** to `frontend` (the included `vercel.json` already
+   configures Vite for you).
+3. Add the environment variable `VITE_SERVER_URL` with the backend URL from
+   step 1, e.g. `VITE_SERVER_URL=https://tic-tac-toe-server.onrender.com`.
+4. Deploy. The build bakes that URL into the app.
+
+### 3. Verify
+
+Open the deployed Vercel URL in two browser windows, create a room in one, and
+join its code in the other. Moves should sync in real time.
+
+Notes:
+
+- Because the backend keeps rooms in memory, it must run as a **single
+  instance** (do not horizontally scale it without adding a shared store such
+  as Redis).
+- `frontend/.env.example` documents the `VITE_SERVER_URL` variable.
+
 ## How to play
 
 1. Open the app and enter your name, then click **Create New Room**, or enter a
