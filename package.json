@@ -1,0 +1,14 @@
+{
+  "name": "tic-tac-toe-online",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Online multiplayer Tic-Tac-Toe with React, Express, and Socket.IO",
+  "scripts": {
+    "install:all": "npm --prefix server install && npm --prefix frontend install",
+    "dev:server": "npm --prefix server run dev",
+    "dev:client": "npm --prefix frontend run dev",
+    "build": "npm --prefix frontend run build",
+    "start": "npm --prefix server start"
+  },
+  "license": "ISC"
+}
