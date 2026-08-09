@@ -83,6 +83,25 @@ The Express server automatically serves the built frontend from
 
 ## Deploying
 
+### Free options at a glance
+
+Multiplayer needs a **persistent** server that supports WebSockets. These free
+options work:
+
+| Host | Free? | Card required | Caveats |
+|------|-------|---------------|---------|
+| **Render** (Web Service) | Yes | No | Free services spin down after ~15 min idle; first open after idle has a ~1 min cold start. An active game keeps the WebSocket alive, so real-time play works. **Recommended** — the included `render.yaml` already uses `plan: free`. |
+| **Koyeb** | Yes | No | Free instances keep running (no spin-down). WebSockets supported. Slightly more setup than Render. |
+| **Fly.io** | Free allowance (~3 small VMs) | Yes | No spin-down, reliable. Needs a credit card to sign up. |
+| **Replit** | Yes | No | Projects sleep on inactivity and connections can be flaky; fine for testing, not ideal for real use. |
+| Railway / Heroku | No | – | No real free tier anymore (trial credits only). |
+
+### Single-instance requirement
+
+The backend keeps rooms in memory, so it must run as a **single instance** on
+whichever free host you pick (do not horizontally scale it without a shared
+store such as Redis).
+
 > **Important:** Vercel alone is **not** enough. Vercel hosts the static
 > frontend perfectly, but its serverless functions **cannot** run Socket.IO or
 > hold long-lived WebSocket connections, and they do not keep in-memory room
@@ -93,15 +112,24 @@ The Express server automatically serves the built frontend from
 > **Render** (Web Service), **Railway**, **Fly.io**, **Heroku**, or a VPS.
 > Deploy the backend there, then point the Vercel frontend at it.
 
-### 1. Backend (persistent WebSocket host) — e.g. Render
+### 1. Backend (persistent WebSocket host) — Render free tier
+
+This is the recommended free path — no credit card required.
 
 1. Push this repo to GitHub.
 2. On [Render](https://render.com), choose **New > Web Service**, connect the
    repo, and select the included blueprint: `render.yaml` (or set Root Directory
    to `server`, Build Command to `npm install`, Start Command to `npm start`,
    and Health Check Path to `/api/health`).
-3. Render gives the backend a public URL, e.g.
+3. Under **Instance Type** pick the **Free** plan.
+4. Render gives the backend a public URL, e.g.
    `https://tic-tac-toe-server.onrender.com`. Note it down.
+
+Free-tier note: the service sleeps after ~15 minutes with no traffic. When a
+player first opens the game after it slept, the first connection takes ~1
+minute to cold-start; after that, moves sync in real time as long as the game
+is open. If you prefer a host that never spins down, use **Koyeb** or
+**Fly.io** instead.
 
 Other hosts work the same way — the backend is a plain Node.js service that
 listens on `process.env.PORT`.
